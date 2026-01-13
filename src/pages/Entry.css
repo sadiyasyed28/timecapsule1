@@ -1,0 +1,33 @@
+.entry-page {
+  width: 100vw;
+  height: 100vh;
+  background-size: cover;
+  background-position: center;
+  position: relative;
+}
+
+/* Enter button only */
+.enter-btn {
+  position: absolute;
+  left: 50%;
+  top: 80%;               /* moves it BELOW your background text */
+  transform: translateX(-50%);
+  
+  padding: 18px 70px;
+  font-size: 22px;
+  border-radius: 50px;
+  border: 2px solid #7b001c;
+  
+  background: rgba(123, 0, 28, 0.75);   /* cherry red, slightly transparent */
+  color: white;
+  cursor: pointer;
+
+  box-shadow: 0 0 30px rgba(160, 0, 40, 0.8);
+  transition: 0.3s ease;
+}
+
+.enter-btn:hover {
+  background: rgba(160, 0, 40, 0.95);
+  box-shadow: 0 0 50px rgba(200, 0, 60, 1);
+  transform: translateX(-50%) scale(1.08);
+}

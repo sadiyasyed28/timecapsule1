@@ -1,31 +1,19 @@
+import React from "react";
+import "./Entry.css";
 import { useNavigate } from "react-router-dom";
-import bg from "../assets/bg.jpg";
+import bg from "../assets/bg.jpg";   // your original entry background
 
 export default function Entry() {
-  const nav = useNavigate();
+  const navigate = useNavigate();
 
   return (
-    <div style={{
-      background: `url(${bg})`,
-      backgroundSize: "cover",
-      backgroundPosition: "center",
-      height: "100vh",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center"
-    }}>
+    <div
+      className="entry-page"
+      style={{ backgroundImage: `url(${bg})` }}
+    >
       <button
-        onClick={() => nav("/login")}
-        style={{
-          fontSize: "36px",
-          padding: "22px 80px",
-          borderRadius: "60px",
-          border: "none",
-          background: "#6b0015",
-          color: "white",
-          cursor: "pointer",
-          boxShadow: "0 0 20px rgba(0,0,0,0.5)"
-        }}
+        className="enter-btn"
+        onClick={() => navigate("/login")}
       >
         Enter
       </button>

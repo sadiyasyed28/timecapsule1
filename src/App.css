@@ -36,3 +36,36 @@
     transform: rotate(360deg);
   }
 }
+/* ===== LOGIN PAGE FIX ===== */
+.login-root {
+  background: linear-gradient(135deg, #5b0012, #8b0d2a);
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 22px;
+}
+
+.login-input {
+  width: 280px;
+  padding: 14px;
+  font-size: 18px;
+  background: white;
+  color: black;
+  border-radius: 12px;
+  border: none;
+  outline: none;
+}
+
+.login-btn {
+  background: #a1122f;
+  color: white;
+  padding: 16px 60px;
+  font-size: 20px;
+  border: none;
+  border-radius: 40px;
+  cursor: pointer;
+  box-shadow: 0 0 20px rgba(255,0,0,0.4);
+}
