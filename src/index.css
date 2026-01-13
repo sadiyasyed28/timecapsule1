@@ -9,3 +9,7 @@ body {
   background: #6b0015;
   color: white;
 }
+html, body {
+  touch-action: none;
+  overscroll-behavior: none;
+}
