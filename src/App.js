@@ -1,25 +1,20 @@
-import logo from './logo.svg';
-import './App.css';
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Entry from "./pages/Entry";
+import Login from "./pages/Login";
+import Calendar from "./pages/Calendar";
+import Month from "./pages/Month";
+import End from "./pages/End";
 
-function App() {
+export default function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Entry />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/calendar" element={<Calendar />} />
+        <Route path="/month/:name" element={<Month />} />
+        <Route path="/end" element={<End />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
-
-export default App;
