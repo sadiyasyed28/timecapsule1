@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
+import Moveable from "react-moveable";
 
 import january from "../assets/january.jpg";
 import february from "../assets/february.jpg";
@@ -19,24 +20,20 @@ const months = [
 ];
 
 const monthTheme = {
-  January:   { bg:january,   color:"#cfe8f5" },
-  February: { bg:february,  color:"#f5d6e8" },
-  March:    { bg:march,     color:"#e0f3d3" },
-  April:    { bg:april,     color:"#fce4d8" },
-  May:      { bg:may,       color:"#e5f7f0" },
-  June:     { bg:june,      color:"#e6ecff" },
-  July:     { bg:july,      color:"#fff0d9" },
-  August:   { bg:august,    color:"#f7e8ff" },
-  September:{ bg:september,color:"#e9f0f4" },
-  October:  { bg:october,  color:"#fde6e0" },
-  November: { bg:november, color:"#e6e1f7" },
-  December: { bg:december, color:"#e0f7f3" }
+  January:{bg:january,color:"#cfe8f5"}, February:{bg:february,color:"#f5d6e8"},
+  March:{bg:march,color:"#e0f3d3"}, April:{bg:april,color:"#fce4d8"},
+  May:{bg:may,color:"#e5f7f0"}, June:{bg:june,color:"#e6ecff"},
+  July:{bg:july,color:"#fff0d9"}, August:{bg:august,color:"#f7e8ff"},
+  September:{bg:september,color:"#e9f0f4"}, October:{bg:october,color:"#fde6e0"},
+  November:{bg:november,color:"#e6e1f7"}, December:{bg:december,color:"#e0f7f3"}
 };
 
 export default function Calendar() {
   const [month, setMonth] = useState(null);
   const [memories, setMemories] = useState({});
   const [photos, setPhotos] = useState({});
+  const [selected, setSelected] = useState(null);
+  const refs = useRef({});
 
   const upload = (e) => {
     const files = Array.from(e.target.files);
@@ -45,63 +42,32 @@ export default function Calendar() {
       [month]: [
         ...(p[month] || []),
         ...files.map(f => ({
+          id: crypto.randomUUID(),
           url: URL.createObjectURL(f),
-          x: 100, y: 100, size: 150, rotate: 0
+          type: f.type.startsWith("video") ? "video" : "image",
+          x: 100,
+          y: 100,
+          scale: 1,
+          rotate: 0
         }))
       ]
     }));
   };
 
-  const startDrag = (e,i) => {
-    e.preventDefault();
-    const startX = e.touches ? e.touches[0].clientX : e.clientX;
-    const startY = e.touches ? e.touches[0].clientY : e.clientY;
-    const rect = e.target.getBoundingClientRect();
-    const offX = startX - rect.left;
-    const offY = startY - rect.top;
-
-    const move = ev => {
-      const x = ev.touches ? ev.touches[0].clientX : ev.clientX;
-      const y = ev.touches ? ev.touches[0].clientY : ev.clientY;
-      setPhotos(p => {
-        const arr = [...p[month]];
-        arr[i] = { ...arr[i], x:x-offX, y:y-offY };
-        return { ...p, [month]:arr };
-      });
-    };
-
-    document.addEventListener("mousemove",move);
-    document.addEventListener("touchmove",move);
-    document.addEventListener("mouseup",()=>cleanup(move),{once:true});
-    document.addEventListener("touchend",()=>cleanup(move),{once:true});
-  };
-
-  const cleanup = (move) => {
-    document.removeEventListener("mousemove",move);
-    document.removeEventListener("touchmove",move);
-  };
-
-  const update = (i,data)=>{
-    setPhotos(p=>{
-      const arr=[...p[month]];
-      arr[i]={...arr[i],...data};
-      return {...p,[month]:arr};
-    });
-  };
-
-  if(!month){
-    return(
-      <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:"20px",padding:"40px"}}>
-        {months.map(m=>(
-          <div key={m} onClick={()=>setMonth(m)}
-            style={{background:"#7b001c",color:"white",padding:"50px",borderRadius:"20px",textAlign:"center",fontSize:"24px",cursor:"pointer"}}>
+  /* ---------- MONTH GRID ---------- */
+  if (!month) {
+    return (
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: "20px", padding: "40px" }}>
+        {months.map(m => (
+          <div key={m} onClick={() => setMonth(m)}
+            style={{ background: "#7b001c", color: "white", padding: "50px", borderRadius: "20px", textAlign: "center", fontSize: "24px", cursor: "pointer" }}>
             {m}
           </div>
         ))}
 
-        <div style={{gridColumn:"1/-1",display:"flex",justifyContent:"center"}}>
-          <div onClick={()=>window.location.href="/end"}
-            style={{padding:"40px 80px",background:"#2c0010",color:"white",borderRadius:"30px",fontSize:"26px",cursor:"pointer"}}>
+        <div style={{ gridColumn: "1/-1", display: "flex", justifyContent: "center" }}>
+          <div onClick={() => window.location.href = "/end"}
+            style={{ padding: "40px 80px", background: "#2c0010", color: "white", borderRadius: "30px", fontSize: "26px", cursor: "pointer" }}>
             Description
           </div>
         </div>
@@ -111,48 +77,99 @@ export default function Calendar() {
 
   const theme = monthTheme[month];
 
-  return(
+  /* ---------- MONTH VIEW ---------- */
+  return (
     <div style={{
-      backgroundImage:`url(${theme.bg})`,
-      backgroundSize:"contain",
-      backgroundRepeat:"no-repeat",
-      backgroundPosition:"center",
-      backgroundColor:theme.color,
-      width:"100vw",
-      height:"100vh",
-      position:"relative"
+      backgroundImage: `url(${theme.bg})`,
+      backgroundSize: "contain",
+      backgroundRepeat: "no-repeat",
+      backgroundPosition: "center",
+      backgroundColor: theme.color,
+      width: "100vw",
+      height: "100vh",
+      position: "relative",
+      overflow: "hidden"
     }}>
 
-      <button onClick={()=>setMonth(null)} style={{position:"absolute",top:20,left:20}}>←</button>
-      <input type="file" multiple onChange={upload} style={{position:"absolute",top:20,right:20}}/>
+      <button onClick={() => setMonth(null)} style={{ position: "absolute", top: 20, left: 20 }}>←</button>
+      <input type="file" multiple accept="image/*,video/*" onChange={upload}
+        style={{ position: "absolute", top: 20, right: 20 }} />
 
-      {(photos[month]||[]).map((p,i)=>(
-        <div key={i} style={{position:"absolute",left:p.x,top:p.y}}>
-          <img
-            src={p.url}
-            onMouseDown={e=>startDrag(e,i)}
-            onTouchStart={e=>startDrag(e,i)}
-            style={{width:p.size,transform:`rotate(${p.rotate}deg)`,borderRadius:"12px"}}
-            alt=""
-          />
-          <div style={{textAlign:"center"}}>
-            <button onClick={()=>update(i,{rotate:p.rotate+15})}>🔄</button>
-            <button onClick={()=>update(i,{size:p.size+20})}>➕</button>
-            <button onClick={()=>update(i,{size:Math.max(p.size-20,50)})}>➖</button>
-            <button onClick={()=>setPhotos(p=>({...p,[month]:p[month].filter((_,x)=>x!==i)}))}>🗑</button>
-          </div>
+      {(photos[month] || []).map(p => (
+        <div key={p.id}
+          ref={el => refs.current[p.id] = el}
+          onClick={() => setSelected(p.id)}
+          style={{
+            position: "absolute",
+            left: p.x,
+            top: p.y,
+            transform: `scale(${p.scale}) rotate(${p.rotate}deg)`,
+            touchAction: "none"
+          }}>
+          {p.type === "image" ?
+            <img src={p.url} style={{ width: 200, borderRadius: 12 }} /> :
+            <video src={p.url} style={{ width: 200, borderRadius: 12 }} controls />
+          }
+
+          {selected === p.id && (
+            <div onClick={() => {
+              setPhotos(x => ({ ...x, [month]: x[month].filter(a => a.id !== p.id) }));
+              setSelected(null);
+            }}
+              style={{
+                position: "absolute", top: -10, right: -10,
+                background: "red", color: "white",
+                borderRadius: "50%", width: 28, height: 28,
+                display: "flex", justifyContent: "center", alignItems: "center", fontWeight: "bold"
+              }}>✕</div>
+          )}
         </div>
       ))}
 
+      {selected && (
+        <Moveable
+          target={refs.current[selected]}
+          draggable
+          scalable
+          rotatable
+          pinchable
+          origin={false}
+          onDrag={e => {
+            setPhotos(p => {
+              const arr = [...p[month]];
+              const i = arr.findIndex(x => x.id === selected);
+              arr[i] = { ...arr[i], x: e.left, y: e.top };
+              return { ...p, [month]: arr };
+            });
+          }}
+          onScale={e => {
+            setPhotos(p => {
+              const arr = [...p[month]];
+              const i = arr.findIndex(x => x.id === selected);
+              arr[i] = { ...arr[i], scale: e.scale[0] };
+              return { ...p, [month]: arr };
+            });
+          }}
+          onRotate={e => {
+            setPhotos(p => {
+              const arr = [...p[month]];
+              const i = arr.findIndex(x => x.id === selected);
+              arr[i] = { ...arr[i], rotate: e.beforeRotate };
+              return { ...p, [month]: arr };
+            });
+          }}
+        />
+      )}
+
       <input
-        value={memories[month]||""}
-        onChange={e=>setMemories({...memories,[month]:e.target.value})}
+        value={memories[month] || ""}
+        onChange={e => setMemories({ ...memories, [month]: e.target.value })}
         placeholder="Write your memory..."
         style={{
-          position:"absolute",
-          bottom:20,left:"50%",transform:"translateX(-50%)",
-          width:"80%",padding:"15px",borderRadius:"30px",
-          boxShadow:`0 0 20px ${theme.color}`
+          position: "absolute",
+          bottom: 20, left: "50%", transform: "translateX(-50%)",
+          width: "80%", padding: "15px", borderRadius: "30px",
+          boxShadow: `0 0 20px ${theme.color}`
         }}
       />
     </div>
