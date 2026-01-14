@@ -13,6 +13,7 @@ import september from "../assets/september.jpg"
 import october from "../assets/october.jpg"
 import november from "../assets/november.jpg"
 import december from "../assets/december.jpg"
+import descriptionBg from "../assets/description.jpg"
 
 const months = ["January","February","March","April","May","June","July","August","September","October","November","December"]
 
@@ -22,37 +23,26 @@ const monthTheme = {
   May:{bg:may,color:"#e5f7f0"}, June:{bg:june,color:"#e6ecff"},
   July:{bg:july,color:"#fff0d9"}, August:{bg:august,color:"#f7e8ff"},
   September:{bg:september,color:"#e9f0f4"}, October:{bg:october,color:"#fde6e0"},
-  November:{bg:november,color:"#e6e1f7"}, December:{bg:december,color:"#e0f7f3"}
+  November:{bg:november,color:"#e6e1f7"}, December:{bg:december,color:"#e0f7f3"},
+  Description:{bg:descriptionBg,color:"#f5efe6"}
 }
 
 export default function Calendar(){
-  const [month,setMonth]=useState(null)
+  const [page,setPage]=useState(null) // null = grid, month name, or "Description"
 
-  const [photos,setPhotos]=useState(() => {
-    return JSON.parse(localStorage.getItem("photos")) || {}
-  })
-
-  const [memories,setMemories]=useState(() => {
-    return JSON.parse(localStorage.getItem("memories")) || {}
-  })
-
+  const [photos,setPhotos]=useState(() => JSON.parse(localStorage.getItem("photos")) || {})
+  const [memories,setMemories]=useState(() => JSON.parse(localStorage.getItem("memories")) || {})
   const [selected,setSelected]=useState(null)
 
-  // autosave
-  useEffect(() => {
-    localStorage.setItem("photos", JSON.stringify(photos))
-  }, [photos])
-
-  useEffect(() => {
-    localStorage.setItem("memories", JSON.stringify(memories))
-  }, [memories])
+  useEffect(()=>{ localStorage.setItem("photos",JSON.stringify(photos)) },[photos])
+  useEffect(()=>{ localStorage.setItem("memories",JSON.stringify(memories)) },[memories])
 
   const upload=e=>{
     const files=[...e.target.files]
     setPhotos(p=>({
       ...p,
-      [month]:[
-        ...(p[month]||[]),
+      [page]:[
+        ...(p[page]||[]),
         ...files.map(f=>({
           id:crypto.randomUUID(),
           url:URL.createObjectURL(f),
@@ -63,21 +53,40 @@ export default function Calendar(){
     }))
   }
 
-  if(!month){
+  // MONTH GRID
+  if(!page){
     return(
       <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:20,padding:40}}>
         {months.map(m=>(
-          <div key={m} onClick={()=>setMonth(m)}
+          <div key={m} onClick={()=>setPage(m)}
             style={{background:"#7b001c",color:"white",padding:50,borderRadius:20,textAlign:"center",fontSize:24}}>
             {m}
           </div>
         ))}
+
+        {/* Center Description */}
+        <div style={{gridColumn:"1 / -1",display:"flex",justifyContent:"center"}}>
+          <div
+            onClick={()=>setPage("Description")}
+            style={{
+              padding:"50px 120px",
+              background:"#2c0010",
+              color:"white",
+              borderRadius:"40px",
+              fontSize:"28px",
+              cursor:"pointer"
+            }}
+          >
+            Description
+          </div>
+        </div>
       </div>
     )
   }
 
-  const theme=monthTheme[month]
+  const theme = monthTheme[page]
 
+  // MONTH / DESCRIPTION VIEW
   return(
     <div
       onPointerDown={()=>setSelected(null)}
@@ -94,12 +103,14 @@ export default function Calendar(){
         touchAction:"none"
       }}
     >
-      <button onClick={()=>setMonth(null)} style={{position:"absolute",top:20,left:20}}>←</button>
+      <button onClick={()=>setPage(null)} style={{position:"absolute",top:20,left:20,zIndex:10}}>←</button>
 
-      <input type="file" multiple accept="image/*,video/*" onChange={upload}
-        style={{position:"absolute",top:20,right:20,zIndex:10}}/>
+      {page!=="Description" && (
+        <input type="file" multiple accept="image/*,video/*" onChange={upload}
+          style={{position:"absolute",top:20,right:20,zIndex:10}}/>
+      )}
 
-      {(photos[month]||[]).map(p=>(
+      {(photos[page]||[]).map(p=>(
         <Draggable
           key={p.id}
           data={p}
@@ -107,27 +118,27 @@ export default function Calendar(){
           onSelect={()=>setSelected(p.id)}
           onUpdate={(d)=>{
             setPhotos(x=>{
-              const arr=[...x[month]]
+              const arr=[...x[page]]
               const i=arr.findIndex(v=>v.id===p.id)
               arr[i]={...arr[i],...d}
-              return {...x,[month]:arr}
+              return {...x,[page]:arr}
             })
           }}
           onDelete={()=>{
-            setPhotos(x=>({...x,[month]:x[month].filter(a=>a.id!==p.id)}))
+            setPhotos(x=>({...x,[page]:x[page].filter(a=>a.id!==p.id)}))
             setSelected(null)
           }}
         />
       ))}
 
-      <input
-        value={memories[month]||""}
-        onChange={e=>setMemories({...memories,[month]:e.target.value})}
-        placeholder="Write your memory..."
+      <textarea
+        value={memories[page]||""}
+        onChange={e=>setMemories({...memories,[page]:e.target.value})}
+        placeholder={page==="Description"?"Write your story…":"Write your memory…"}
         style={{
           position:"absolute",
           bottom:20,left:"50%",transform:"translateX(-50%)",
-          width:"80%",padding:15,borderRadius:30
+          width:"80%",height:120,padding:15,borderRadius:20,fontSize:16
         }}
       />
     </div>
